@@ -10,7 +10,7 @@ fps = 30  # Frames per second
 speed = 0.04  # Decreased speed of wave movement
 wavelength = 1  # Further decreased wavelength
 amplitude = 1  # Decreased amplitude
-fade_in_frames = 30  # Number of frames for wave to appear gradually
+birthtime = 20 # Time when the wave is born
 
 # Space array
 x = np.linspace(0, L, N)
@@ -22,13 +22,11 @@ ax.set_xlim(0, L)
 ax.set_ylim(-5, 5)  # Set y-axis range
 line, = ax.plot(x, y, '-o')  # Line connecting points
 
-def my_new_wave(mywavelength, mydirection, mypropagation, mybirthdelay, myinitialposition, myspeed, index, myframe):
+def my_new_wave(myamplitude, mywavelength, mydirection, mypropagation, mybirthdelay, myinitialposition, myspeed, index, myframe):
     director = 0
     motion = 0
     if mybirthdelay > myframe:
-        return 0
-    elif myframe - mybirthdelay < fade_in_frames:
-        appearance_factor = (myframe - mybirthdelay)/ fade_in_frames  # Gradual appearance factor
+        appearance_factor = 0
     else:
         appearance_factor = 1  # Fully visible wave
 
@@ -41,16 +39,15 @@ def my_new_wave(mywavelength, mydirection, mypropagation, mybirthdelay, myinitia
         motion = 1
     elif mypropagation == "backward":
         motion = -1
-    return appearance_factor * director * np.exp(-(((index - myinitialposition) - (motion * myspeed) * spawn) ** 2) / (2 * (mywavelength/2) ** 2))
+    return myamplitude * appearance_factor * director * np.exp(-(((index - myinitialposition) - (motion * myspeed) * spawn) ** 2) / (2 * (mywavelength/2) ** 2))
 
 # Update function
 def update(frame):
     # Superposition of two waves moving in opposite directions
-    y[:] = amplitude * (
-        my_new_wave(wavelength, "up", "forward", 0, 0, speed, x, frame) +
-        my_new_wave(wavelength*2, "down","backward", 100, L, 3*speed/2, x, frame) +
-        my_new_wave(wavelength, "up", "forward", 100, L/2, 5*speed/2, x, frame)
-    )
+    y[:] = 0  # Reset y to zero for each frame
+    y[:] += my_new_wave(1*amplitude, wavelength, "up", "forward", 0*birthtime, 0*L, 1*speed, x, frame)
+    y[:] += my_new_wave(1*amplitude, 2*wavelength, "down","backward", 5*birthtime, 1*L, 3.5*speed, x, frame)
+    y[:] += my_new_wave(1*amplitude, wavelength, "up", "forward", 5*birthtime, 0.5*L, 2.5*speed, x, frame)
     
     line.set_ydata(y)  # Update line
     return line,
